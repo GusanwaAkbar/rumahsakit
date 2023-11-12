@@ -25,6 +25,13 @@ def home(request):
     ###########
     #K-MEANS CODE
     durations = df.DURASI
+
+    def extract_date_from_string(date_str):
+        day = int(date_str[2:4])
+        month = int(date_str[4:6])
+        year = int('20' + date_str[6:8])  # Assuming the year is in the 21st century
+        return pd.to_datetime(f"{year}-{month:02d}-{day:02d}")
+
     
     def parse_time_duration(duration_str):
         hours, minutes, seconds = map(int, duration_str.split(':'))
@@ -34,6 +41,10 @@ def home(request):
         hours, minutes, seconds = map(int, duration_str.split(':'))
         minutes = (hours * 3600 + minutes * 60 + seconds)/3600
         return 
+
+    def combine_date_and_time(row):
+        time_str = row['JAM_DAFTAR'].strftime('%H:%M:%S')
+        return row['Date'] + pd.to_timedelta(time_str)
 
     # Use the function to convert the list of duration strings to integers
     durations_in_seconds = [parse_time_duration(str(duration)) for duration in durations]
@@ -65,24 +76,21 @@ def home(request):
     for i, center in enumerate(cluster_centers):
         print(f'Cluster {i + 1}: {center[0]} seconds')
 
-    list_minutes = df.JAM_DAFTAR
-    durations_in_minutes = [parse_time_duration(str(duration)) for duration in list_minutes]
+    df['Date'] = df['TGL_PELAYANAN'].apply(extract_date_from_string)
 
-    #Divide all values by 3600 using a loop
-    minutes = []
-    for value in durations_in_minutes:
-        minutes.append(value)
+    # Combine 'Date' and 'JAM_DAFTAR' to create a new datetime column
+    df['datetime'] = df.apply(combine_date_and_time, axis=1)
 
-    # Alternatively, use a list comprehension
-    #minutes = [value / 3600 for value in minutes]
+    # K-Means clustering code...
 
-    # Convert 'JAM_DAFTAR' to total minutes
-    df['JAM_DAFTAR_MINUTES'] = minutes
+    # Set the x-axis range dynamically based on the minimum and maximum date in the dataset
+    xaxis_range = [df['Date'].min(), df['Date'].max()]
+    default_range = ['06:00:00', '16:00:00']
 
     # Plotly scatter plot
     trace = go.Scatter(
-        x=df['DURASI'],
-        y=df['JAM_DAFTAR_MINUTES'],
+        x=df['datetime'],
+        y=df['DURASI'],
         mode='markers',
         marker=dict(color=cluster_labels, size=10, colorscale='Viridis'),
         showlegend=True,
@@ -90,16 +98,14 @@ def home(request):
     )
 
     layout = go.Layout(
-        title='K-Means Clustering',
-        xaxis=dict(title='DURASI'),
-        yaxis=dict(title='JAM_DAFTAR (minutes)'),
-        showlegend=True
+        
+        xaxis=dict(title='Datetime', range=['2021-08-10 06:00:00', '2021-08-10 14:00:00']),
+        yaxis=dict(title='Duration (seconds)'),
+        showlegend=False
     )
 
     fig = go.Figure(data=[trace], layout=layout)
-
-    # Convert the Plotly figure to JSON to be passed to the template
-    plot_json = fig.to_json()
+    fig['layout']['height'] = 600
 
     # Convert the Plotly figure to JSON to be passed to the template
     plot_json = fig.to_json()
@@ -108,6 +114,8 @@ def home(request):
         'data': df,
         'plot_json': plot_json,
     }
+
+
 
 
     # Return a "created" (201) response code.

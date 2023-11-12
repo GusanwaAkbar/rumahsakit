@@ -12629,6 +12629,10 @@ fieldset:disabled .btn {
   justify-content: space-between;
 }
 
+.container-fluid.page-body-wrapper {
+  width: 100%;
+}
+
 .navbar-brand {
   padding-top: 0.3125rem;
   padding-bottom: 0.3125rem;
@@ -22383,7 +22387,7 @@ dl li {
 
 .main-panel {
   transition: width 0.25s ease, margin 0.25s ease;
-  width: calc(100% - 257px);
+  width: calc(100%);
   min-height: calc(100vh - 60px);
   display: -webkit-flex;
   display: flex;
