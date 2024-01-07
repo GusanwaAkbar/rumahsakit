@@ -87,7 +87,7 @@
               <div class="d-flex justify-content-between flex-wrap">
                 <div class="d-flex align-items-end flex-wrap">
                   <div class="me-md-3 me-xl-5">
-                    <h2>Dashboard Clusterisasi Waktu Tunggu</h2>
+                    <h2>Table Data Clusterisasi Waktu Tunggu</h2>
                  
 
                   </div>
@@ -121,40 +121,35 @@
         </button>
       </div>
       <div class="modal-body">
-        
         <form method="post" action="{% url 'tambah_pasien' %}">
           {% csrf_token %}
           <div class="form-group">
-              <label for="norm">NORM:</label>
-              <input type="number" class="form-control" id="norm" name="NORM" required>
+            <label for="norm">NORM:</label>
+            <input type="number" class="form-control" id="norm" name="NORM" required>
           </div>
           <div class="form-group">
-              <label for="tgl_pelayanan">TGL_PELAYANAN:</label>
-              <input type="text" class="form-control" id="tgl_pelayanan" name="TGL_PELAYANAN" required>
+            <label for="tgl_pelayanan">TGL_PELAYANAN:</label>
+            <input type="text" class="form-control" id="tgl_pelayanan" name="TGL_PELAYANAN" required>
           </div>
           <div class="form-group">
-              <label for="nama_pasien">NAMA_PASIEN:</label>
-              <input type="text" class="form-control" id="nama_pasien" name="NAMA_PASIEN" required>
+            <label for="nama_pasien">NAMA_PASIEN:</label>
+            <input type="text" class="form-control" id="nama_pasien" name="NAMA_PASIEN" required>
           </div>
           <div class="form-group">
-              <label for="poli_tujuan">POLI_TUJUAN:</label>
-              <input type="text" class="form-control" id="poli_tujuan" name="POLI_TUJUAN" required>
+            <label for="poli_tujuan">POLI_TUJUAN:</label>
+            <input type="text" class="form-control" id="poli_tujuan" name="POLI_TUJUAN" required>
           </div>
           <div class="form-group">
-              <label for="jam_daftar">JAM_DAFTAR:</label>
-              <input type="text" class="form-control" id="jam_daftar" name="JAM_DAFTAR" required>
+            <label for="jam_daftar">JAM_DAFTAR:</label>
+            <input type="time" class="form-control" id="jam_daftar" name="JAM_DAFTAR" required>
           </div>
           <div class="form-group">
-              <label for="jam_map_tersedia">JAM_MAP_TERSEDIA:</label>
-              <input type="text" class="form-control" id="jam_map_tersedia" name="JAM_MAP_TERSEDIA" required>
+            <label for="jam_map_tersedia">JAM_MAP_TERSEDIA:</label>
+            <input type="time" class="form-control" id="jam_map_tersedia" name="JAM_MAP_TERSEDIA" required>
           </div>
-          <div class="form-group">
-              <label for="durasi">DURASI:</label>
-              <input type="text" class="form-control" id="durasi" name="DURASI">
-          </div>
+
           <button type="submit" class="btn btn-primary">Tambah</button>
-      </form>
-      
+        </form>
       </div>
     </div>
   </div>
@@ -175,51 +170,7 @@
                
             </div>
           </div>
-          <div class="row">
-            <div class="col-md-12 grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body dashboard-tabs p-0">
-                  
-                  <div class="container">
-                          
-                    <div id="plotly-plot"></div>
-                    
-                 
-                  </div>
 
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-lg grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                  <p class="card-title">Bar Chart Top 5 Poli With Most Cluster 4</p>
-                  <p class="mb-4">Bar Chart untuk analisis cluster dengan waktu tunggu terlama (cluster 4)</p>
-                  <div id="cash-deposits-chart-legend" class="d-flex justify-content-center pt-3"></div>
-                  
-                  <div id="plotly-bad2"></div>
-
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="row">
-
-            <div class="col-lg grid-margin stretch-card">
-              <div class="card">
-                <div class="card-body">
-                             
-                </div>
-
-                <div id="plotly-good"></div>
-              
-              </div>
-            </div>
-
-          </div>
 
 
 

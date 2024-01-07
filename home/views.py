@@ -70,30 +70,21 @@ def home(request):
     X = np.array(durations_in_seconds).reshape(-1, 1)
 
     # Choose the number of clusters (k)
-    k = 5
+    k = 4
 
     # Initialize and fit the KMeans model
     kmeans = KMeans(n_clusters=k, random_state=0)
     kmeans.fit(X)
 
+    # Get the cluster centers (in seconds)
+    cluster_centers = kmeans.cluster_centers_
 
-    # Range of clusters to try
-    k_values = range(1, 11)
+    # Print the centroids of each cluster
+    print("===========CLUSTER CENTER================")
+    for i, centroid in enumerate(cluster_centers):
+        print(f"Centroid of Cluster {i+1}: {centroid[0]} seconds")
 
-    # Sum of squared distances for each k
-    inertia_values = []
 
-    # Fit the KMeans model for each k and compute the inertia (within-cluster sum of squares)
-    for k in k_values:
-        kmeans = KMeans(n_clusters=k, random_state=0)
-        kmeans.fit(X)
-        inertia_values.append(kmeans.inertia_)
-
-    knee = KneeLocator(k_values, inertia_values, curve='convex', direction='decreasing')
-    optimal_k = knee.elbow
-
-    print("======================")
-    print(f"The optimal number of clusters (k) is: {optimal_k}")
 
     # Get the cluster assignments for each data point
     cluster_labels = kmeans.labels_
@@ -199,7 +190,7 @@ def home(request):
     count_by_cluster = df.groupby(['POLI_TUJUAN', 'ordered_cluster']).size().reset_index(name='Count')
 
     # Filter counts for Cluster 5
-    count_cluster_5 = count_by_cluster[count_by_cluster['ordered_cluster'] == 5]
+    count_cluster_5 = count_by_cluster[count_by_cluster['ordered_cluster'] == 4]
 
     # Get the top POLI_TUJUAN based on the sum of counts in Cluster 5
     top_poli_tujuan = count_cluster_5.groupby('POLI_TUJUAN')['Count'].sum().nlargest(5).index
@@ -212,8 +203,8 @@ def home(request):
 
     # Generate Plotly visualization
     fig = px.bar(count_by_cluster_top_5, x='POLI_TUJUAN', y='Count', color='ordered_cluster',
-                 text='Count', title='Top 5 POLI_TUJUAN in Cluster 5 with Counts in Other Clusters',
-                 category_orders={'POLI_TUJUAN': ordered_poli_tujuan, 'ordered_cluster': [1, 2, 3, 4, 5]})
+                 text='Count', title='Top 5 POLIKLINIK with most Cluster 5 Data',
+                 category_orders={'POLI_TUJUAN': ordered_poli_tujuan, 'ordered_cluster': [1, 2, 3, 4]})
 
     # Convert Plotly figure to JSON
     #plot_json = json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
@@ -239,8 +230,8 @@ def home(request):
 
     # Generate Plotly visualization for all clusters
     fig_all_clusters = px.bar(count_by_cluster_top_5_all_clusters, x='POLI_TUJUAN', y='Count', color='ordered_cluster',
-                            text='Count', title='Top 5 POLI_TUJUAN in All Clusters with Counts in Other Clusters',
-                            category_orders={'POLI_TUJUAN': ordered_poli_tujuan_all_clusters, 'ordered_cluster': [1, 2, 3, 4, 5]})
+                            text='Count', title='Top 5 POLIKLINIK with most Cluster 1 Data',
+                            category_orders={'POLI_TUJUAN': ordered_poli_tujuan_all_clusters, 'ordered_cluster': [1, 2, 3, 4]})
 
     # Convert Plotly figure to JSON
     plot_cluster_1 = fig_all_clusters.to_json()
@@ -264,13 +255,131 @@ def home(request):
     return render(request, 'index.html', context)
 
 
+def table(request):
+
+    queryset = PasienLama.objects.all()
+
+    # Convert the data to a Pandas DataFrame
+    df = pd.DataFrame(list(queryset.values()))
+    print(df)
+    print(df.DURASI)
+    ###########
+    #K-MEANS CODE
+    durations = df.DURASI
+
+    def extract_date_from_string(date_str):
+        day = int(date_str[2:4])
+        month = int(date_str[4:6])
+        year = int('20' + date_str[6:8])  # Assuming the year is in the 21st century
+        return pd.to_datetime(f"{year}-{month:02d}-{day:02d}")
+
+    
+    def parse_time_duration(duration_str):
+        hours, minutes, seconds = map(int, duration_str.split(':'))
+        return hours * 3600 + minutes * 60 + seconds
+    
+    def parse_time_duration_mnt(duration_str):
+        hours, minutes, seconds = map(int, duration_str.split(':'))
+        minutes = (hours * 3600 + minutes * 60 + seconds)/3600
+        return 
+
+    def combine_date_and_time(row):
+        time_str = row['JAM_DAFTAR'].strftime('%H:%M:%S')
+        return row['Date'] + pd.to_timedelta(time_str)
+
+    # Use the function to convert the list of duration strings to integers
+    durations_in_seconds = [parse_time_duration(str(duration)) for duration in durations]
+
+    # Convert the list of duration data to a NumPy array
+    X = np.array(durations_in_seconds).reshape(-1, 1)
+
+    # Choose the number of clusters (k)
+    k = 4
+
+    # Initialize and fit the KMeans model
+    kmeans = KMeans(n_clusters=k, random_state=0)
+    kmeans.fit(X)
+
+    # Get the cluster centers (in seconds)
+    cluster_centers = kmeans.cluster_centers_
+
+    # Print the centroids of each cluster
+    print("===========CLUSTER CENTER================")
+    for i, centroid in enumerate(cluster_centers):
+        print(f"Centroid of Cluster {i+1}: {centroid[0]} seconds")
+
+
+
+    # Get the cluster assignments for each data point
+    cluster_labels = kmeans.labels_
+
+    # Get the cluster centers (in seconds)
+    cluster_centers = kmeans.cluster_centers_
+
+    df["cluster"] = cluster_labels
+    #df["centers"] = cluster_centers
+
+    # Order clusters based on cluster centers
+    cluster_order = np.argsort(cluster_centers[:, 0])
+
+    # Create a mapping from cluster label to ordered cluster number
+    cluster_mapping = {cluster_order[i]: i + 1 for i in range(k)}
+
+    # Map the cluster labels to the ordered cluster numbers in the DataFrame
+    df["ordered_cluster"] = df["cluster"].map(cluster_mapping)
+
+    df["cluster"] = df["ordered_cluster"]
+
+    context = {
+        'data': df
+    }
+
+    
+
+
+
+
+    # Return a "created" (201) response code.
+    return render(request, 'table.html', context)
+
+
+from datetime import datetime, timedelta, time
+
 def tambah_pasien(request):
     if request.method == 'POST':
         form = PasienLamaForm(request.POST)
         if form.is_valid():
+            # Extract the values from the form
+            jam_daftar_str = str(form.cleaned_data['JAM_DAFTAR'])
+            jam_map_tersedia_str = str(form.cleaned_data['JAM_MAP_TERSEDIA'])
+
+            # Parse string representations of time to datetime objects
+            jam_daftar_dt = datetime.strptime(jam_daftar_str, '%H:%M:%S')
+            jam_map_tersedia_dt = datetime.strptime(jam_map_tersedia_str, '%H:%M:%S')
+
+            # Extract time component from datetime objects
+            jam_daftar = jam_daftar_dt.time()
+            jam_map_tersedia = jam_map_tersedia_dt.time()
+
+            # Calculate the duration in hours
+            duration_seconds = (datetime.combine(datetime.today(), jam_map_tersedia) - 
+                                datetime.combine(datetime.today(), jam_daftar)).total_seconds()
+
+            # Convert duration to hours
+            duration_hours = duration_seconds / 3600
+
+            # Assign the duration value to the form instance
+            form.instance.DURASI = duration_hours
+
+            # Save the form
             form.save()
-            return redirect('home')  # Redirect to your list view
+            
+            return redirect('table')  # Redirect to your list view
+        else:
+            return redirect('home')
     else:
         form = PasienLamaForm()
+        return redirect('home')
 
-    return render(request, 'tambah_pasien.html', {'form': form})
+
+    
